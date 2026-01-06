@@ -53,16 +53,19 @@ public final class BancoLocalization {
     };
 
     public void load() {
-        Path overrides = Paths.get(baseFile + "/lang/overrides.properties");
+        final String rootPath = baseFile + File.separator + "lang";
+        final Path globalOverridesPath = Paths.get(rootPath, "global_overrides.properties");
+        final Path enUsOverridesPath = Paths.get(rootPath, "en_US_overrides.properties");
+        //final Path globalOverridesPath = Paths.get(baseFile + File.separator + "lang" + File.separator + "global_overrides.properties");
 
-        if (!Files.exists(overrides)) {
+        if (!Files.exists(globalOverridesPath)) {
             try {
-                if (!Files.isDirectory(overrides.getParent()))
-                    Files.createDirectories(overrides.getParent());
+                if (!Files.isDirectory(globalOverridesPath.getParent()))
+                    Files.createDirectories(globalOverridesPath.getParent());
 
-                logger.info("Creating lang/overrides.properties...");
-                Files.copy(Objects.requireNonNull(Banco.class.getResourceAsStream("/overrides.properties")),
-                        overrides);
+                logger.info("Creating override files...", globalOverridesPath.toUri());
+                Files.copy(Objects.requireNonNull(Banco.class.getResourceAsStream("/global_overrides.properties")), globalOverridesPath);
+                Files.copy(Objects.requireNonNull(Banco.class.getResourceAsStream("/en_US_overrides.properties")), enUsOverridesPath);
                 logger.info("Done!");
             } catch (IOException e) {
                 logger.error("Error while creating overrides file: {}", e);
@@ -72,11 +75,18 @@ public final class BancoLocalization {
         final MiniMessageTranslationStore store = MiniMessageTranslationStore.create(Key.key("banco:i10n"));
 
         langs.forEach(langTag -> {
-            String baseName = "i10n_" + langTag;
-            Locale locale = Locale.forLanguageTag(langTag.replace("_", "-"));
-            ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName, locale, UTF8ResourceBundleControl.utf8ResourceBundleControl());
+            // Get specific locale
+            final String baseName = "i10n_" + langTag;
+            final Locale locale = Locale.forLanguageTag(langTag.replace("_", "-"));
+            final ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName, locale, UTF8ResourceBundleControl.utf8ResourceBundleControl());
+            final Path localeOverridesPath = Paths.get(baseFile + File.separator + "lang" + File.separator + langTag + "_overrides.properties");
 
-            store.registerAll(locale, override(overrides, resourceBundle), true);
+            // Override global & locale-specific keys
+            ResourceBundle overridenBundle = override(globalOverridesPath, resourceBundle);
+            if (Files.exists(localeOverridesPath))
+                overridenBundle = override(localeOverridesPath, overridenBundle);
+
+            store.registerAll(locale, overridenBundle, true);
         });
 
         store.defaultLocale(Locale.forLanguageTag(Banco.get().getSettings().get().getDefaultLanguageTag()));
@@ -99,6 +109,7 @@ public final class BancoLocalization {
             }
         } catch (final IOException e) {
             logger.error("Error while reading overrides file: {}", e);
+            e.printStackTrace(System.err);
         }
 
         return new MapResourceBundle(map);
