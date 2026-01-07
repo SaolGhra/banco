@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +31,12 @@ public class Transaction {
     private @NotNull Operation operation;
 
     private @NotNull BigDecimal amount;
+
+    @Builder.Default
+    private List<Runnable> executeAfterTransaction = new ArrayList<>();
+
+    @Builder.Default
+    private boolean loggable = true;
 
     public void transact() {
         // Best-effort logging: mark the start of this transaction. Don't let logging stop the transaction.
@@ -65,6 +73,9 @@ public class Transaction {
                         acct, operation, amount, account.amount(), Instant.now());
             } catch (Exception ignored) {}
         }
+
+        if (loggable)
+            Banco.get().getAccountManager().getTransactionHistory().register(account.getIdentifier(), this);
     }
 
     public void queue() {
@@ -92,7 +103,7 @@ public class Transaction {
 
                 // Set transactions to remaining amount
                 account.setTransactions(account.getTransactions().add(toAdd.setScale(2, RoundingMode.HALF_UP)));
-                Banco.get().getAccountManager().getDatabase().update(account);
+                Banco.get().getAccountManager().getDatabase().updateCache(account);
                 return;
             }
 
@@ -107,7 +118,7 @@ public class Transaction {
 
             // Register transaction if player is not online
             account.setTransactions(account.getTransactions().add(toAdd));
-            Banco.get().getAccountManager().getDatabase().update(account);
+            Banco.get().getAccountManager().getDatabase().updateCache(account);
         } else { // Remove amount from account
             BigDecimal toRemove = account.amount().subtract(newAmount);
             
@@ -121,7 +132,7 @@ public class Transaction {
 
                 // Set transactions to remaining amount
                 account.setTransactions(account.getTransactions().subtract(toRemove.setScale(2, RoundingMode.HALF_UP)));
-                Banco.get().getAccountManager().getDatabase().update(account);
+                Banco.get().getAccountManager().getDatabase().updateCache(account);
                 return;
             }
 
@@ -136,7 +147,7 @@ public class Transaction {
 
             // Register transaction if player is not online
             account.setTransactions(account.getTransactions().subtract(toRemove));
-            Banco.get().getAccountManager().getDatabase().update(account);
+            Banco.get().getAccountManager().getDatabase().updateCache(account);
         }
     }
 
@@ -150,8 +161,11 @@ public class Transaction {
 
         private final Transaction transaction;
 
+        private final Instant timestamp;
+
         ImmutableView(Transaction transaction) {
             this.transaction = transaction;
+            this.timestamp = Instant.now();
         }
 
         public Account account() {
@@ -164,6 +178,10 @@ public class Transaction {
 
         public Operation operation() {
             return transaction.operation;
+        }
+
+        public Instant timestamp() {
+            return this.timestamp;
         }
 
     }

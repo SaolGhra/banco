@@ -28,6 +28,7 @@ import ovh.mythmc.banco.api.Banco;
 import ovh.mythmc.banco.api.accounts.database.MySQLConnectionSource;
 import ovh.mythmc.banco.api.accounts.database.SQLiteConnectionSource;
 import ovh.mythmc.banco.api.logger.LoggerWrapper;
+import ovh.mythmc.banco.api.scheduler.BancoScheduler;
 
 @NoArgsConstructor
 public final class AccountDatabase {
@@ -82,8 +83,7 @@ public final class AccountDatabase {
 
         scheduleAutoSaver();
 
-        if (Banco.get().getSettings().get().isDebug())
-            Banco.get().getLogger().info("Loaded a total amount of " + get().size() + " accounts! (using V3 format)");
+        Banco.get().getLogger().debug("Loaded a total amount of " + get().size() + " accounts! (using V3 format)");
 
         accountIdentifierCache.addAll(get().stream().map(Account::getIdentifier).toList());
 
@@ -137,7 +137,7 @@ public final class AccountDatabase {
         }
     }
 
-    public void update(@NotNull Account account) {
+    public void updateCache(@NotNull Account account) {
         cache.put(account.getIdentifier(), account);
     }
 
@@ -155,18 +155,21 @@ public final class AccountDatabase {
         }, Banco.get().getSettings().get().getDatabase().getCacheClearInterval(), TimeUnit.MINUTES);
     }
 
-    private void updateAllDatabaseEntries() {
+    public long updateAllDatabaseEntries() {
         var startTime = System.currentTimeMillis();
 
-        if (Banco.get().getSettings().get().isDebug())
-            Banco.get().getLogger().info("Updating " + cache.size() + " cached accounts...");
+        Banco.get().getLogger().debug("Updating " + cache.size() + " cached accounts...");
 
         Map.copyOf(cache).values().forEach(this::updateDatabaseEntry);
 
-        if (Banco.get().getSettings().get().isDebug())
-            Banco.get().getLogger().info("Done! (took " + (System.currentTimeMillis() - startTime) + "ms)");
+        final long totalTime = System.currentTimeMillis() - startTime;
+
+        Banco.get().getLogger().debug("Done! (took " + totalTime + "ms)");
+
+        return totalTime;
     }
 
+    /*
     private void updateDatabaseEntry(@NotNull Account account) {
         try {
             getDao().update(account);
@@ -176,6 +179,32 @@ public final class AccountDatabase {
         } catch (SQLException e) {
             logger.error("Exception while updating account {}", e);
         }
+    }
+     */
+
+    public long updateDatabaseEntry(@NotNull Account account) {
+        final Runnable task = () -> {
+            try {
+                getDao().update(account);
+    
+                // Clear cache value
+                cache.remove(account.getIdentifier());
+            } catch (SQLException e) {
+                logger.error("Exception while updating account {}", e);
+            }
+        };
+
+        final long startTime = System.currentTimeMillis();
+
+        if (Banco.get().getSettings().get().getDatabase().isAsynchronousWrites()) {
+            Banco.get().getLogger().debug("Saving {} ({}) asynchronously...", account.getIdentifier().uuid(), account.getIdentifier().name());
+
+            BancoScheduler.get().runAsync(task);
+        } else {
+            task.run();
+        }
+
+        return (System.currentTimeMillis() - startTime);
     }
 
     public Collection<Account> getCachedAccounts() {

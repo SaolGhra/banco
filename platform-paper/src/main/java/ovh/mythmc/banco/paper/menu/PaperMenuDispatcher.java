@@ -1,0 +1,43 @@
+package ovh.mythmc.banco.paper.menu;
+
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import ovh.mythmc.banco.api.accounts.Account;
+import ovh.mythmc.banco.common.menu.MenuDispatcher;
+import ovh.mythmc.banco.paper.dialog.BalanceTopDialog;
+import ovh.mythmc.banco.paper.dialog.InfoDialog;
+import ovh.mythmc.banco.paper.dialog.BalanceConvertDialog;
+import ovh.mythmc.banco.paper.dialog.TransactionHistoryDialog;
+
+public final class PaperMenuDispatcher implements MenuDispatcher {
+
+    private final BalanceTopDialog balanceTopDialog = new BalanceTopDialog();
+
+    private final InfoDialog infoDialog = new InfoDialog();
+
+    private final TransactionHistoryDialog transactionHistoryDialog = new TransactionHistoryDialog();
+
+    private final BalanceConvertDialog itemConverterDialog = new BalanceConvertDialog();
+
+    @Override
+    public void showBalanceTop(@NotNull Player player) {
+        balanceTopDialog.open(player);
+    }
+
+    @Override
+    public void showInfo(@NotNull Player player) {
+        infoDialog.open(player);
+    } 
+
+    @Override
+    public void showTransactionHistory(@NotNull Player player, @NotNull Account account) {
+        transactionHistoryDialog.open(player, account);
+    }
+
+    @Override
+    public void showItemConverter(@NotNull Player player) {
+        itemConverterDialog.open(player);
+    }
+    
+}

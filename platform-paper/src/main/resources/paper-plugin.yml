@@ -3,7 +3,7 @@ authors:
   - myth-MC
   - U8092
 version: '${project.version}'
-api-version: '1.21'
+api-version: '1.21.7'
 
 main: ovh.mythmc.banco.paper.BancoPaperPlugin
 folia-supported: true
@@ -62,8 +62,9 @@ permissions:
       banco.use.help: true
       banco.use.balance: true
       banco.use.balancetop: true
-      banco.use.balancechange: true
+      banco.use.balanceconvert: true
       banco.use.pay: true
+      banco.use.transactions: true
   banco.admin:
     default: op
     children:
@@ -74,6 +75,7 @@ permissions:
       banco.use.banco.dump: true
       banco.use.banco.info: true
       banco.use.banco.reload: true
+      banco.use.banco.debug.forcesave: true
   # Commands (misc)
   banco.use.help:
     default: true
@@ -81,9 +83,11 @@ permissions:
     default: true
   banco.use.balancetop:
     default: true
-  banco.use.balancechange:
+  banco.use.balanceconvert:
     default: true
   banco.use.pay:
+    default: true
+  banco.use.transactions:
     default: true
   # Commands (/banco)
   banco.use.banco.encode:
@@ -99,4 +103,6 @@ permissions:
   banco.use.banco.info:
     default: op
   banco.use.banco.reload:
+    default: op
+  banco.use.banco.debug.forcesave:
     default: op

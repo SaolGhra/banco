@@ -1,4 +1,4 @@
-package ovh.mythmc.banco.common.menus.impl;
+package ovh.mythmc.banco.bukkit.menu.impl;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -11,8 +11,8 @@ import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 import ovh.mythmc.banco.api.Banco;
 import ovh.mythmc.banco.api.scheduler.BancoScheduler;
-import ovh.mythmc.banco.common.menus.BasicMenu;
-import ovh.mythmc.banco.common.menus.MenuButton;
+import ovh.mythmc.banco.bukkit.menu.BasicMenu;
+import ovh.mythmc.banco.bukkit.menu.MenuButton;
 import ovh.mythmc.banco.common.update.UpdateChecker;
 
 import java.net.MalformedURLException;
@@ -27,7 +27,7 @@ public final class InfoMenu extends BasicMenu {
 
     @Override
     protected Inventory createInventory() {
-        return Bukkit.createInventory(null, 9, Banco.get().getSettings().get().getMenus().getInfo().title());
+        return Bukkit.createInventory(null, 9, Banco.get().getSettings().get().getDialogs().getInfo().title());
     }
 
     @Override
@@ -59,8 +59,8 @@ public final class InfoMenu extends BasicMenu {
     }
 
     private MenuButton getButton(ItemStack itemStack, String key, String value) {
-        String name = String.format(Banco.get().getSettings().get().getMenus().getInfo().keyFormat(), key);
-        String lore = String.format(Banco.get().getSettings().get().getMenus().getInfo().valueFormat(), value);
+        String name = String.format(Banco.get().getSettings().get().getDialogs().getInfo().keyFormat(), key);
+        String lore = String.format(Banco.get().getSettings().get().getDialogs().getInfo().valueFormat(), value);
 
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.setDisplayName(name);
