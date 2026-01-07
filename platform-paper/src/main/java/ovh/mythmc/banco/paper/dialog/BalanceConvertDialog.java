@@ -39,9 +39,9 @@ public final class BalanceConvertDialog {
 
     private static Dialog getMainMenu(@NotNull Player player) {
         final List<DialogBody> dialogBodyList = new ArrayList<>();
-        final String description = Banco.get().getSettings().get().getMenus().getBalanceConvert().description();
-        final String itemButton = Banco.get().getSettings().get().getMenus().getBalanceConvert().itemButton();
-        final String compactButton = Banco.get().getSettings().get().getMenus().getBalanceConvert().compactButton();
+        final String description = Banco.get().getSettings().get().getDialogs().getBalanceConvert().description();
+        final String itemButton = Banco.get().getSettings().get().getDialogs().getBalanceConvert().itemButton();
+        final String compactButton = Banco.get().getSettings().get().getDialogs().getBalanceConvert().compactButton();
 
         dialogBodyList.add(DialogBody.plainMessage(MiniMessage.miniMessage().deserialize(description)));
 
@@ -62,7 +62,7 @@ public final class BalanceConvertDialog {
         }
 
         final Dialog dialog = Dialog.create(builder -> builder.empty()
-            .base(DialogBase.builder(MiniMessage.miniMessage().deserialize(Banco.get().getSettings().get().getMenus().getTransactionHistory().title()))
+            .base(DialogBase.builder(MiniMessage.miniMessage().deserialize(Banco.get().getSettings().get().getDialogs().getTransactionHistory().title()))
                 .body(dialogBodyList)
                 .build())
             .type(DialogType.multiAction(actionButtonList)
@@ -84,7 +84,7 @@ public final class BalanceConvertDialog {
         final Account account = Banco.get().getAccountManager().getByUuid(player.getUniqueId());
         final int maxAmount = Math.min(ItemUtil.getMaxUnitsFromValue(item, account.amount()), Banco.get().getSettings().get().getCommands().getBalanceConvert().maxConvertibleAmount());
 
-        final String description = Banco.get().getSettings().get().getMenus().getBalanceConvert().itemDescription();
+        final String description = Banco.get().getSettings().get().getDialogs().getBalanceConvert().itemDescription();
 
         return Dialog.create(builder -> builder.empty()
             .base(DialogBase.builder(Component.text("Convert to ").append(item.displayName()))
@@ -141,7 +141,7 @@ public final class BalanceConvertDialog {
     }
 
     private static Dialog getCompactConfirmation(@NotNull Player player) {
-        final String compactTitle = Banco.get().getSettings().get().getMenus().getBalanceConvert().compactTitle();
+        final String compactTitle = Banco.get().getSettings().get().getDialogs().getBalanceConvert().compactTitle();
 
         return Dialog.create(builder -> builder.empty()
             .base(DialogBase.builder(MiniMessage.miniMessage().deserialize(compactTitle))
@@ -164,8 +164,8 @@ public final class BalanceConvertDialog {
     }
 
     private static List<DialogBody> getCompactResult(@NotNull Player player) {
-        final String compactWarning = Banco.get().getSettings().get().getMenus().getBalanceConvert().compactWarning();
-
+        final String compactWarning = Banco.get().getSettings().get().getDialogs().getBalanceConvert().compactWarning();
+        
         final Account account = Banco.get().getAccountManager().getByUuid(player.getUniqueId());
         final List<ItemStack> itemStackList = ItemUtil.convertAmountToItems(account.amount());
         final List<DialogBody> dialogBodyList = new ArrayList<>(List.of(
